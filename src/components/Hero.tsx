@@ -88,15 +88,12 @@ const Hero = () => {
       },
     });
 
-    videoRef.current?.addEventListener("canplay", () => {
-      requestAnimationFrame(() => {
-        const video = videoRef.current;
-        if (video && !isNaN(video.duration)) {
-          tl.to(video, {
-            currentTime: video.duration,
-          });
-        }
-      });
+    videoRef.current?.addEventListener("loadedmetadata", () => {
+      if (videoRef.current) {
+        tl.to(videoRef.current, {
+          currentTime: videoRef.current.duration,
+        });
+      }
     });
   }, []);
 
