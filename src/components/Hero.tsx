@@ -1,32 +1,34 @@
 import { useGSAP } from "@gsap/react";
 import { SplitText } from "gsap/all";
-
 import gsap from "gsap";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useMediaQuery } from "react-responsive";
 
 const Hero = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const isMobile = useMediaQuery({ maxWidth: 767 });
 
-  const [showPlayButton, setShowPlayButton] = useState(false);
+  const [showGate, setShowGate] = useState(false);
 
   useEffect(() => {
     if (isMobile) {
-      setShowPlayButton(true);
+      setShowGate(true);
     }
   }, [isMobile]);
 
-  const handlePlay = async () => {
+  const handleEnter = async () => {
     const video = videoRef.current;
     if (!video) return;
 
     try {
       await video.play();
-      setShowPlayButton(false); // hide button after play
+      video.pause();
+      video.currentTime = 0;
     } catch (err) {
-      console.error("Video play failed", err);
+      console.error("Video unlock failed", err);
     }
+
+    setShowGate(false);
   };
 
   useGSAP(() => {
@@ -60,20 +62,8 @@ const Hero = () => {
           scrub: true,
         },
       })
-      .to(
-        ".right-leaf",
-        {
-          y: 400,
-        },
-        0
-      )
-      .to(
-        ".left-leaf",
-        {
-          y: -200,
-        },
-        0
-      );
+      .to(".right-leaf", { y: 400 }, 0)
+      .to(".left-leaf", { y: -200 }, 0);
 
     const startValue = isMobile ? "top 50%" : "center 60%";
     const endValue = isMobile ? "120% top" : "bottom top";
@@ -88,13 +78,18 @@ const Hero = () => {
       },
     });
 
-    videoRef.current?.addEventListener("loadedmetadata", () => {
-      if (videoRef.current) {
-        tl.to(videoRef.current, {
-          currentTime: videoRef.current.duration,
-        });
-      }
-    });
+    videoRef.current?.addEventListener(
+      "loadedmetadata",
+      () => {
+        const video = videoRef.current;
+        if (video && !isNaN(video.duration)) {
+          tl.to(video, {
+            currentTime: video.duration,
+          });
+        }
+      },
+      { once: true }
+    );
   }, []);
 
   return (
@@ -106,13 +101,11 @@ const Hero = () => {
           alt="left-leaf"
           className="left-leaf"
         />
-
         <img
           src="/images/hero-right-leaf.png"
           alt="right-leaf"
           className="right-leaf"
         />
-
         <div className="body">
           <div className="content">
             <div className="space-y-5 hidden md:block">
@@ -132,6 +125,7 @@ const Hero = () => {
           </div>
         </div>
       </section>
+
       <div className="video absolute inset-0">
         <video
           ref={videoRef}
@@ -140,16 +134,22 @@ const Hero = () => {
           playsInline
           preload="auto"
         ></video>
-
-        {showPlayButton && (
-          <button
-            className="absolute bottom-4 left-1/2 -translate-x-1/2 px-6 py-3 bg-white text-black font-bold rounded"
-            onClick={handlePlay}
-          >
-            Play Video
-          </button>
-        )}
       </div>
+
+      {showGate && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black text-white text-center px-6">
+          <h2 className="text-2xl font-semibold mb-4">Welcome</h2>
+          <p className="mb-6 text-sm opacity-70">
+            Tap below to unlock the experience.
+          </p>
+          <button
+            onClick={handleEnter}
+            className="px-6 py-3 border border-white rounded text-lg font-bold hover:bg-white hover:text-black transition"
+          >
+            Enter Site
+          </button>
+        </div>
+      )}
     </>
   );
 };
