@@ -2,13 +2,32 @@ import { useGSAP } from "@gsap/react";
 import { SplitText } from "gsap/all";
 
 import gsap from "gsap";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useMediaQuery } from "react-responsive";
 
 const Hero = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
-
   const isMobile = useMediaQuery({ maxWidth: 767 });
+
+  const [showPlayButton, setShowPlayButton] = useState(false);
+
+  useEffect(() => {
+    if (isMobile) {
+      setShowPlayButton(true);
+    }
+  }, [isMobile]);
+
+  const handlePlay = async () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    try {
+      await video.play();
+      setShowPlayButton(false); // hide button after play
+    } catch (err) {
+      console.error("Video play failed", err);
+    }
+  };
 
   useGSAP(() => {
     const heroSplit = new SplitText(".title", { type: "chars, words" });
@@ -124,6 +143,15 @@ const Hero = () => {
           playsInline
           preload="auto"
         ></video>
+
+        {showPlayButton && (
+          <button
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 px-6 py-3 bg-white text-black font-bold rounded"
+            onClick={handlePlay}
+          >
+            Play Video
+          </button>
+        )}
       </div>
     </>
   );
