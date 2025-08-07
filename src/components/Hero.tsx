@@ -69,12 +69,15 @@ const Hero = () => {
       },
     });
 
-    videoRef.current?.addEventListener("loadedmetadata", () => {
-      if (videoRef.current) {
-        tl.to(videoRef.current, {
-          currentTime: videoRef.current.duration,
-        });
-      }
+    videoRef.current?.addEventListener("canplay", () => {
+      requestAnimationFrame(() => {
+        const video = videoRef.current;
+        if (video && !isNaN(video.duration)) {
+          tl.to(video, {
+            currentTime: video.duration,
+          });
+        }
+      });
     });
   }, []);
 
@@ -116,7 +119,7 @@ const Hero = () => {
       <div className="video absolute inset-0">
         <video
           ref={videoRef}
-          src="/videos/input.mp4"
+          src="/videos/output.mp4"
           muted
           playsInline
           preload="auto"
